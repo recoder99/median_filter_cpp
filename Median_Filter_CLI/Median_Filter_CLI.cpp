@@ -137,7 +137,13 @@ public:
     void startMedianFilter() {
         
         //set padding size
-        cv::copyMakeBorder(image, paddedImage, paddingSize, paddingSize, paddingSize, paddingSize, cv::BORDER_CONSTANT, 0);
+        try {
+            cv::copyMakeBorder(image, paddedImage, paddingSize, paddingSize, paddingSize, paddingSize, cv::BORDER_CONSTANT, 0);
+        }
+        catch (cv::Exception& e) {
+            std::cout << e.msg << std::endl;
+        } 
+
         int center_start = (windowSize - 1) / 2;
 
         //for each pixels
@@ -191,8 +197,7 @@ int main(int argc, char* argv[])
     bool enableLog = false;
     bool preview = false;
 
-    cv::Mat image = cv::imread(imagePath, cv::IMREAD_COLOR);
-
+    
     //std::replace(begin(imagePath), end(imagePath), '\\', '/');
     //std::replace(begin(imageOutputPath), end(imageOutputPath), '\\', '/');
 
@@ -221,11 +226,10 @@ int main(int argc, char* argv[])
         }
     }
 
-    try {
-        image = cv::imread(imagePath, cv::IMREAD_COLOR);
-    }
-    catch (cv::Exception& e) {
-        std::cout << e.msg << std::endl;
+    cv::Mat image = cv::imread(imagePath, cv::IMREAD_COLOR);
+
+    if (image.empty()) {
+        std::cout << "No image found" << std::endl;
         return 0;
     }
 
