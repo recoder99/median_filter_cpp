@@ -114,7 +114,7 @@ public:
         }
         if (p < r) {
             //get the mid value
-            int q = p + (r - p) / 2;
+            int q = (p+r) / 2;
             //split array then recurse
             if (enableLog) *logFile << "\nSplitting Array...";
             mergeSort(arr, p, q);
@@ -135,14 +135,14 @@ public:
     }
 
     void startMedianFilter() {
-        
+
         //set padding size
         try {
-            cv::copyMakeBorder(image, paddedImage, paddingSize, paddingSize, paddingSize, paddingSize, cv::BORDER_CONSTANT, 0);
+            cv::copyMakeBorder(image, paddedImage, paddingSize, paddingSize, paddingSize, paddingSize, cv::BORDER_REFLECT);
         }
         catch (cv::Exception& e) {
             std::cout << e.msg << std::endl;
-        } 
+        }
 
         int center_start = (windowSize - 1) / 2;
 
@@ -150,7 +150,7 @@ public:
         for (int i = 0; i < paddedImage.size().height - windowSize; i++) {
             for (int j = 0; j < paddedImage.size().width - windowSize; j++) {
 
-                if(verbose) std::cout << "\n\n[Pixel location : " << j + paddingSize << " " << i + paddingSize << "]\n";
+                if (verbose) std::cout << "\n\n[Pixel location : " << j + paddingSize << " " << i + paddingSize << "]\n";
                 if (enableLog) *logFile << "\n\n[Pixel location : " << j + paddingSize << " " << i + paddingSize << "]\n";
 
                 int w = 0;
@@ -164,15 +164,34 @@ public:
                     }
                 }
 
+                if (verbose) std::cout << "\nsorting values in pixel window...." << std::endl;
                 //sort the pixel and get its median
                 mergeSort(window, 0, pow(windowSize, 2) - 1);
+
+                //show sorted pixel if log is true
+                if (enableLog) {
+                    *logFile << "\nsorted pixel values in window: ";
+                    for (int i = 0; i < pow(windowSize, 2); i++) {
+                        *logFile << window[i] << " ";
+                    }
+                    *logFile << std::endl;
+                }
+
                 int median_value = window[(int)ceil((pow(windowSize, 2) - 1) / 2)];
 
+                if (enableLog) *logFile << "Median value obtained: " << median_value << std::endl;
+
+                if (paddedImage.at<cv::Vec3b>(cv::Point(j + paddingSize, i + paddingSize))[0] == median_value) {
+                    continue;
+                }
+
+                if (verbose) std::cout << "\nreplacing current pixel with the median value...." << std::endl;
                 //replace the pixel with the median pixel
                 paddedImage.at<cv::Vec3b>(cv::Point(j + paddingSize, i + paddingSize))[0] = median_value;
                 paddedImage.at<cv::Vec3b>(cv::Point(j + paddingSize, i + paddingSize))[1] = median_value;
                 paddedImage.at<cv::Vec3b>(cv::Point(j + paddingSize, i + paddingSize))[2] = median_value;
 
+                if (enableLog) *logFile << "current value replaced with " << median_value << std::endl;
             }
         }
     }
